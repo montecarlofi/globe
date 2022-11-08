@@ -1,44 +1,33 @@
-# Does not work with more than one record per day... I think (haven't implemented time comparison; only date).
 import streamlit as st; st.set_page_config(layout="wide")
 import altair as alt
-#import pandas as pd
-#import matplotlib.pyplot as plt
-#from datetime import date, timedelta
 from itertools import accumulate
-#from running_setup import INFO_FILE, TOTAL, n_days_year #weekly_math, n_days_year, daily_math, days_gone, yearly_math, Y_YEAR, X_YEAR, weeks_left, TOTAL
 import run_get_data as get_data
-from run_processing import *
+import run_processing as pro
+from run_processing import TOTAL
+
+# Does not work with more than one record per day... I think.
+# (Haven't implemented time comparison; only date.)
 
 # Setup:
-INFO_FILE, TOTAL, n_days_year = 'runners.csv', 40075, 365
-#START = '2020-08-02'
+INFO_FILE, TOTAL, n_days_year = 'runners.csv', 40075, 365 #START = '2020-08-02'
 
 # Get data.
 runners = get_data.get_runners(INFO_FILE) # name, distances, dates, start, end
 
 # Process data.
 def process(runners):
-	runners = apply_cutoff(runners)
-	runners = calc_progress(runners)
+	runners = pro.apply_cutoff(runners)
+	runners = pro.calc_progress(runners)
 	#runners = ascending(runners, column='dates')
 	#runners = fill_past_blank_days_with_zero(runners) # Un until today.
 	#runners = moving_average(runners, 7) # Gives average across period; not for units within.
 	#runners = ante_last_seven(runners) # Gives average across period; not for units within.
-	runners = fill_year_to_current(runners) # Creates sequence with 0 for blank days.
-	runners = fill_year_to_end(runners)
-	runners = sum_moving_sequence(runners, 'last_seven', -7, -0)
-	runners = sum_moving_sequence(runners, 'ante_last_seven', -14, -7)
+	runners = pro.fill_year_to_current(runners) # Creates sequence with 0 for blank days.
+	runners = pro.fill_year_to_end(runners)
+	runners = pro.sum_moving_sequence(runners, 'last_seven', -7, -0)
+	runners = pro.sum_moving_sequence(runners, 'ante_last_seven', -14, -7)
 	return runners
 runners = process(runners)
-#runners = process(runners)
-
-
-#for r in runners:
-#	r['sum_moving_sequence'] = sum_moving_sequence(r, -14, -7)
-#runners = sum_moving_sequence(runners, -7, -0)
-#[r['sum_moving_sequence'] := sum_moving_sequence(r, -14, -7) for r in runners]
-
-#name = 'last_seven'; [print(f'{name}: {r[name]}') for r in runners]
 
 # Get user input.
 
@@ -52,14 +41,7 @@ ideal0 = list(accumulate([runners[0]['path_year_ideal'] for x in range(len(seq0)
 ideal1 = list(accumulate([runners[1]['path_year_ideal'] for x in range(len(seq1))]))
 
 
-
 left1, left2, wide = st.columns((1, 1, 5))
-
-a, b = [1, 2, 3], [1, 2, 3]
-for i in a, b:
-	#print("i", i)
-	pass
-
 import numpy as np 
 import pandas as pd 
 
@@ -102,7 +84,7 @@ with left2:
 	for r in runners:
 		r['end_date'] = new_date
 	runners = process(runners)
-	print(daydate(gui_end_date, 8, 1))
+	print(pro.daydate(gui_end_date, 8, 1))
 
 
 	r = runners[0]
