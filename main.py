@@ -3,7 +3,14 @@ import altair as alt
 from itertools import accumulate
 import run_get_data as get_data
 import run_processing as pro
-from run_processing import TOTAL
+#from run_processing import TOTAL
+import numpy as np 
+import pandas as pd 
+
+#
+# Does not work with more than one record per day... I think.
+# (Haven't implemented time comparison; only date.)
+#
 
 hide_streamlit_style = """
             <style>
@@ -13,14 +20,14 @@ hide_streamlit_style = """
             """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True) 
 
-# Does not work with more than one record per day... I think.
-# (Haven't implemented time comparison; only date.)
 
 # Setup:
 INFO_FILE, TOTAL, n_days_year = 'runners.csv', 40075, 365 #START = '2020-08-02'
 
+
 # Get data.
 runners = get_data.get_runners(INFO_FILE) # name, distances, dates, start, end
+
 
 # Process data.
 def process(runners):
@@ -37,9 +44,8 @@ def process(runners):
 	return runners
 runners = process(runners)
 
-# Get user input.
 
-# Display data.
+# Display interactive.
 s = accumulate(runners[0]['year_series'])
 ditances0 = runners[0]['year_series']
 ditances1 = runners[1]['year_series']
@@ -49,15 +55,30 @@ ideal0 = list(accumulate([runners[0]['path_year_ideal'] for x in range(len(seq0)
 ideal1 = list(accumulate([runners[1]['path_year_ideal'] for x in range(len(seq1))]))
 
 
-left1, left2, wide = st.columns((1, 1, 5))
-import numpy as np 
-import pandas as pd 
-
-r_earth = 6371 # From different models (Wikipedia).
+wide, right0, right1 = st.columns((5, 1, 1))
+#container = st.sidebar()
 r_earth = 6378.137 # Equator.
 p = 180/np.pi
 
-with left1:
+
+with st.sidebar:
+	gui_end_date = st.slider("End date Per", 2032, 2037, 2037, 1)
+	new_date = str(gui_end_date) + '-08-01'
+	runners[1]['end_date'] = new_date
+	runners = process(runners)
+
+	st.markdown("***")
+
+	gui_end_date = st.slider("End date Mikal", 2032, 2037, 2032, 1)
+	new_date = str(gui_end_date) + '-08-01'
+	runners[0]['end_date'] = new_date
+	#for r in runners:
+	#	r['end_date'] = new_date
+	runners = process(runners)
+	print(pro.daydate(gui_end_date, 8, 1))
+
+with right0:
+
 	r = runners[1]
 	percent = r['progress_total']/TOTAL
 	percent = percent * 100
@@ -66,8 +87,13 @@ with left1:
 	progress_year = str(round(r['progress_year'])) + " km"
 	last_seven = r['last_seven']
 	diff = last_seven - r['average_math_weekly']
-	#st.metric(name_percent, last_seven, diff)
-	#st.progress(r['progress_total']/TOTAL)
+
+	title = r['name'] + ', last seven days:'
+	math_weekly = r['average_math_weekly']
+	small = round((last_seven/math_weekly)*100 - 100, 2)
+	small = str(small) + '% from ideal'
+	big = str(last_seven) + '(' + str(round(math_weekly,2)) + ')'
+	st.metric(title, big, small)
 
 	latitude, longitude = 0, -71.2450076 # Pacoa, Colombia.
 	dy, dx = 0, -r['progress_total']
@@ -79,21 +105,12 @@ with left1:
     	point / [50, 50] + [new_latitude, new_longitude],
     	columns=['lat', 'lon'])
 
-	#st.map(df, zoom=3)
+	st.map(df, zoom=3)
+	st.progress(r['progress_total']/TOTAL)
 
-with left2:
-	st.metric('1', '2', '3')
-	st.markdown("***")
-	gui_end_date = st.slider("End date", 2032, 2037, 2032, 1)
-	new_date = str(gui_end_date) + '-08-01'
-	print(new_date)
-
-	#runners[0]['end_date'] = "2040-01-01"
-	for r in runners:
-		r['end_date'] = new_date
-	runners = process(runners)
-	print(pro.daydate(gui_end_date, 8, 1))
-
+with right1:
+	#st.metric('1', '2', '3')
+	#st.markdown("***")
 
 	r = runners[0]
 
@@ -120,10 +137,10 @@ with left2:
 	small = str(small) + '% from ideal'
 
 	big = str(last_seven) + '(' + str(round(math_weekly,2)) + ')'
-	#st.metric(title, big, small)
+	st.metric(title, big, small)
 
 	#st.metric(name_percent, last_seven, to_week)
-	#st.progress(r['progress_total']/TOTAL)
+	#st.write(100*round(r['progress_total']/TOTAL),2)
 
 	# Apple health
 
@@ -155,7 +172,9 @@ with left2:
     	point / [50, 50] + [new_latitude, new_longitude],
     	columns=['lat', 'lon'])
 
-	#st.map(df, zoom=3)
+	st.map(df, zoom=3)
+	st.progress(r['progress_total']/TOTAL)
+
 
 	with wide:
 		st.title("Around the world")
