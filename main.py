@@ -4,7 +4,14 @@ from itertools import accumulate
 import run_get_data as get_data
 import run_processing as pro
 from run_processing import TOTAL
-from hide_streamlit import *
+
+hide_streamlit_style = """
+            <style>
+            #MainMenu {visibility: hidden;}
+            footer {visibility: hidden;}
+            </style>
+            """
+st.markdown(hide_streamlit_style, unsafe_allow_html=True) 
 
 # Does not work with more than one record per day... I think.
 # (Haven't implemented time comparison; only date.)
