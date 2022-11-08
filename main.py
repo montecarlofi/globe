@@ -2,7 +2,7 @@
 import streamlit as st; st.set_page_config(layout="wide")
 import altair as alt
 #import pandas as pd
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 #from datetime import date, timedelta
 from itertools import accumulate
 #from running_setup import INFO_FILE, TOTAL, n_days_year #weekly_math, n_days_year, daily_math, days_gone, yearly_math, Y_YEAR, X_YEAR, weeks_left, TOTAL
