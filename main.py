@@ -117,7 +117,7 @@ if selected == 'You':
 		weekly_avg_before_last_seven = (progress_year-last_seven)/7
 		updown = (last_seven/weekly_avg_before_last_seven) * 100
 		updown = round(updown-100, 2)
-		updown = str(updown) + msg
+		#updown = str(updown) + msg
 		st.metric(title, round(week_path_to_year, 2), updown)
 
 
