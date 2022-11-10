@@ -55,22 +55,17 @@ def make_graph_data(r):
 		rdata.append(ideal_data)
 	return rdata
 
+def get_position(r):
+	positions = []
+	xy = [r['latitude'], r['longitude']]
+	positions.append(xy)
+	return positions
+
 def get_positions(runners):
 	positions = []
 	for r in runners:
 		xy = [r['latitude'], r['longitude']]
 		positions.append(xy)
-	return positions
-
-	positions = []
-	xy = [1, 2]
-	positions.append(xy)
-	xy = [31, 2]
-	positions.append(xy)
-	xy = [10, 2]
-	positions.append(xy)
-
-
 	return positions
 
 def streamlit_hide(markdown):
@@ -81,6 +76,29 @@ def streamlit_hide(markdown):
 	            </style>
 	            """
 	markdown(hide_streamlit_style, unsafe_allow_html=True) 
+
+	markdown("""
+	<style>
+	div[data-testid="metric-container"] {
+	   background-color: rgba(240, 242, 246, 0.7);
+	   border: 1px solid rgba(240, 242, 246, 0.7);
+	   padding: 10% 10% 10% 10%;
+	   border-radius: 5px;
+	   color: rgb(30, 103, 119);
+	   overflow-wrap: break-word;
+	}
+
+	/* breakline for metric text         */
+	div[data-testid="metric-container"] > label[data-testid="stMetricLabel"] > div {
+	   overflow-wrap: break-word;
+	   white-space: break-spaces;
+	   color: black;
+	}
+	</style>
+	"""
+	, unsafe_allow_html=True)
+
+	#st.metric(label="This is a very very very very very long sentence", value="70 °F")
 
 def others(st):
 	st.write("HHHHHHHHHHHHHHH")
