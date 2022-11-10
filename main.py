@@ -36,64 +36,84 @@ runners = process(runners)
 
 
 # Display interactive.
-s = accumulate(runners[0]['year_series'])
-distances0 = runners[0]['year_series']
-distances1 = runners[1]['year_series']
-seq0 = list(accumulate(runners[0]['year_series']))
-seq1 = list(accumulate(runners[1]['year_series']))
-ideal0 = list(accumulate([runners[0]['path_year_ideal'] for x in range(len(seq0))]))
-ideal1 = list(accumulate([runners[1]['path_year_ideal'] for x in range(len(seq1))]))
-
 display.streamlit_hide(st.markdown)
 
-selected = option_menu(None, ["You", 'Everyone', 'Settings'], 
-        icons=['geo-fill', 'globe2', 'gear'], menu_icon="cast", default_index=0, orientation='horizontal')
-selected
+#selected = option_menu(None, ["You", 'Everyone', 'Settings'], 
+#        icons=['geo-fill', 'globe2', 'gear'], menu_icon="cast", default_index=0, orientation='horizontal')
+#selected
 
 main = st.container() #Map = st.empty()
 
 with st.sidebar:
-	pass
+	# Menu
+	lnk = "https://share.streamlit.io/mesmith027/streamlit_webapps/main/MC_pi/streamlit_app.py"
+	link = f'[Check this out]({lnk})'
+	st.write(link)
+	names = [str(i).zfill(3)+' '+runners[i]['name'] for i in range(len(runners))]
+	#links = 
+	linknames = ['Everyone'] + names + ['Settings']
+	runnerindex = list(range(len(names)))
+	
+	the_icons = ['globe'] + ['geo-fill' for x in range(len(runners))] + ['gear']
 
+	selected2 = option_menu(None, linknames, 
+	        icons=the_icons, menu_icon="cast", default_index=1)
+	selected2
+
+	try:
+		choice = int(selected2[0:3])
+		choice_flag = 'id'
+	except Exception as e:
+		choice = selected2
+		choice_flag = 'name'
 
 with main:
 	st.title("Gaia Endurance") # La Terra # Endurance # Vigor, Vim # Dashing # Zooming
 
-	if selected == 'You':
-		positions = display.get_positions(runners)
-		positions = [positions[1]]
+	if choice_flag == 'id':
+		positions = display.get_position(runners[choice])
+		positions = [positions[0]]
 		zoom = 4
-
-	if selected == 'Everyone':
+	elif choice == 'Everyone':
 		positions = display.get_positions(runners)
-		zoom = 1
+		zoom = 0.44
+	else:
+		st.write(f"Ain't no settings.")
 
 	#latitude, longitude = 0, -71.2450076 # Pacoa, Colombia.
 	df = pd.DataFrame(positions, columns=['lat', 'lon'])
 	st.map(df, zoom=zoom)
-	st.markdown("***")
 
-	if selected == 'You':
-		st.progress(runners[1]['progress_year']/runners[1]['remain_year'])
-		st.text("Progress current year-cycle")
-		st.progress(runners[1]['progress_total']/TOTAL)
-		st.text("Progress total")
+	if choice_flag == 'id':
+		st.markdown("***")
+		percent = runners[choice]['progress_year']/runners[choice]['remain_year']
+		st.progress(percent)
+		percent = round(percent*100, 2)
+		st.text(f"Progress current year-cycle ({percent}%)")
+		percent = runners[choice]['progress_total']/TOTAL
+		st.progress(percent)
+		percent = round(percent*100, 2)
+		st.text(f"Progress total ({percent}%)")
 
 wide = st.empty()
 
-if selected == 'You':
+if choice_flag == 'id':
 	col1, col2, col3 = st.columns((1, 1, 1))
 
 	with col3:
-		gui_end_date = st.slider("End date Per", 2027, 2042, 2037, 1)	
+		runner_name = runners[choice]['name']
+		end_date = runners[choice]['end_date']
+		end_year = int(end_date[0:4])
+		#print(end_date); exit()
+		gui_end_date = st.slider("End date "+runner_name, 2027, 2042, end_year, 1)	
 		new_date = str(gui_end_date) + '-08-01'
-		runners[1]['end_date'] = new_date
+		runners[choice]['end_date'] = new_date
 		runners = process(runners)
 
 	with col1:
-		week_path_to_year = runners[1]['week_path_to_year']
-		last_seven = runners[1]['last_seven']
-		progress_year = runners[1]['progress_year']
+		week_path_to_year = runners[choice]['week_path_to_year']
+		last_seven = runners[choice]['last_seven']
+		progress_year = runners[choice]['progress_year']
 
 		title = "Last 7 days:"
 		updown = (last_seven/week_path_to_year) * 100
@@ -109,7 +129,9 @@ if selected == 'You':
 			#updown = -0
 		updown = str(updown) + msg
 		week_path_to_year = round(week_path_to_year, 2)
-		st.metric(title, str(last_seven)+' km', updown)
+		value = str(last_seven)+' km'
+		st.metric(title, value)
+		#st.metric(title, value, updown)
 
 	with col2:
 		title = "Weekly target to current section"
@@ -118,7 +140,8 @@ if selected == 'You':
 		updown = (last_seven/weekly_avg_before_last_seven) * 100
 		updown = round(updown-100, 2)
 		#updown = str(updown) + msg
-		st.metric(title, round(week_path_to_year, 2), updown)
+		st.metric(title, round(week_path_to_year, 2))
+		#st.success("<h2>HEI")
 
 
 
@@ -142,9 +165,9 @@ if selected == 'You':
 	#if selected == 'You':
 	#	pass
 
-if selected == 'You':
+if choice_flag == 'id':
 	with wide:
-		rdata = display.make_graph_data(runners[1])
+		rdata = display.make_graph_data(runners[choice])
 		df = pd.DataFrame(
 		    rdata,
 		    columns=['name', 'day', 'distance_acc', 'distance_day', 'average_math_daily'])
