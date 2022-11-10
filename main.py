@@ -48,7 +48,7 @@ with st.sidebar:
 	# Menu
 	lnk = "https://share.streamlit.io/mesmith027/streamlit_webapps/main/MC_pi/streamlit_app.py"
 	link = f'[Check this out]({lnk})'
-	st.write(link)
+	#st.write(link)
 	names = [str(i).zfill(3)+' '+runners[i]['name'] for i in range(len(runners))]
 	#links = 
 	linknames = ['Everyone'] + names + ['Settings']
