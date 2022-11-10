@@ -1,4 +1,5 @@
 from itertools import accumulate
+from running_setup import TOTAL
 
 def make_like_sql_table(runners):
 	rdata = []
@@ -63,8 +64,8 @@ def get_position(r):
 
 def get_positions(runners):
 	positions = []
-	for r in runners:
-		xy = [r['latitude'], r['longitude']]
+	for ID in runners:
+		xy = [runners[ID]['latitude'], runners[ID]['longitude']]
 		positions.append(xy)
 	return positions
 
@@ -99,6 +100,17 @@ def streamlit_hide(markdown):
 	, unsafe_allow_html=True)
 
 	#st.metric(label="This is a very very very very very long sentence", value="70 °F")
+
+def progress_bar_all(runners, st_progress, st_text):
+	names = []
+	pees = []
+	for ID in runners:
+		name = runners[ID]['name']
+		progress = runners[ID]['progress_total']/TOTAL
+		percent = round(progress * 100, 0)
+		st_progress(progress)
+		st_text(f"{name} — progress total ({percent}%)")
+
 
 def others(st):
 	st.write("HHHHHHHHHHHHHHH")

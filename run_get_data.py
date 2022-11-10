@@ -3,13 +3,15 @@ import pandas as pd
 
 def get_runners(filename):
 	info  = pd.read_csv(filename)
+	IDs = list(info['id'])
 	names = list(info['Name'])
 	files = list(info['Filename'])
 	start_dates = list(info['start_date'])
 	end_dates   = list(info['end_date'])
 
-	runners = []
+	runners = {}
 	for r in range(len(names)):
+		runner_id = IDs[r]
 		runner_name = names[r]
 		runner_file = files[r]
 
@@ -31,7 +33,8 @@ def get_runners(filename):
 			'userinput': None
 		}
 		del data
-		runners.append(runner)
+		#runners.append(runner)
+		runners[runner_id] = runner
 	return runners
 
 #def __ensure_ascending__(dates, distances):

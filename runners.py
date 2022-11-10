@@ -9,19 +9,19 @@ def calc_progress(runners):
 	#n_days_in_cycle = count_days_between(first_day_of_cycle, today()) # days_gone_since(first_day_of_cycle())
 	#n_left_in_cycle = n_days_year - n_days_in_cycle
 
-	for r in runners:
-		dates, distances = r['dates'], r['distances']
-		start_date = daydate.str_to_date(r['start_date'])
-		end_date   = daydate.str_to_date(r['end_date'])
+	for ID in runners:
+		dates, distances = runners[ID]['dates'], runners[ID]['distances']
+		start_date = daydate.str_to_date(runners[ID]['start_date'])
+		end_date   = daydate.str_to_date(runners[ID]['end_date'])
 		#print(f'start_date {start_date}\n')
 		first_day_of_cycle = daydate.first_day_of_current_year_cycle(start_date)
-		r['first_day_of_current_year_cycle'] = first_day_of_cycle
+		runners[ID]['first_day_of_current_year_cycle'] = first_day_of_cycle
 		last_day_of_cycle = daydate.last_day_of_current_year_cycle(start_date)
-		r['last_day_of_current_year_cycle'] = last_day_of_cycle
-		#start_date = r['start_date']
-		#end_date   = r['end_date']
-		#r['start_date'] = start_date
-		#r['end_date']   = end_date
+		runners[ID]['last_day_of_current_year_cycle'] = last_day_of_cycle
+		#start_date = runners[ID]['start_date']
+		#end_date   = runners[ID]['end_date']
+		#runners[ID]['start_date'] = start_date
+		#runners[ID]['end_date']   = end_date
 		progress_total  = __progress_since__(dates, distances, cutoff_date=start_date)
 		progress_year   = __progress_since__(dates, distances, cutoff_date=first_day_of_cycle)
 		n_years_left    = daydate.time_between(daydate.today(), end_date)/n_days_year
@@ -33,42 +33,42 @@ def calc_progress(runners):
 		n_days_in_cycle = daydate.time_between(first_day_of_cycle, daydate.today()) # Until, and including, yesterday.
 		n_left_in_cycle = daydate.time_between(daydate.today(), daydate.add_days(last_day_of_cycle, 1)) # +1 since we've set the end date at the date before the start date.
 		n_days_left     = daydate.time_between(daydate.today(), daydate.add_days(end_date, 1))
-		r['n_left_in_cycle'] = n_left_in_cycle
-		r['n_days_in_cycle'] = n_days_in_cycle
-		r['n_days_running'] = n_days_running
-		r['path_year_ideal'] = TOTAL / n_years / n_days_year
-		r['progress_total'] = progress_total
-		r['progress_year'] = progress_year
-		r['remain_total'] = TOTAL - progress_total
-		r['remain_year'] = (TOTAL/n_years) - progress_year
-		r['yearly_remain'] = (TOTAL-progress_total) / n_years_left
-		r['path_to_total'] = (TOTAL - progress_total) / n_days_left
-		#r['path_to_year'] = ((TOTAL/n_years) - progress_year) / n_left_in_cycle
-		r['week_path_to_year'] = (((TOTAL/n_years) - progress_year) / n_left_in_cycle) * 7
-		r['average_math_weekly'] = (TOTAL/n_years/n_days_year) * 7
-		r['average_math_daily'] = (TOTAL/n_years/n_days_year)
-		r['last_seven'] = __sum_moving_sequence__(r, 'last_seven', -7, -0)
-		r['ante_last_seven'] = __sum_moving_sequence__(r, 'ante_last_seven', -14, -7)
+		runners[ID]['n_left_in_cycle'] = n_left_in_cycle
+		runners[ID]['n_days_in_cycle'] = n_days_in_cycle
+		runners[ID]['n_days_running'] = n_days_running
+		runners[ID]['path_year_ideal'] = TOTAL / n_years / n_days_year
+		runners[ID]['progress_total'] = progress_total
+		runners[ID]['progress_year'] = progress_year
+		runners[ID]['remain_total'] = TOTAL - progress_total
+		runners[ID]['remain_year'] = (TOTAL/n_years) - progress_year
+		runners[ID]['yearly_remain'] = (TOTAL-progress_total) / n_years_left
+		runners[ID]['path_to_total'] = (TOTAL - progress_total) / n_days_left
+		#runners[ID]['path_to_year'] = ((TOTAL/n_years) - progress_year) / n_left_in_cycle
+		runners[ID]['week_path_to_year'] = (((TOTAL/n_years) - progress_year) / n_left_in_cycle) * 7
+		runners[ID]['average_math_weekly'] = (TOTAL/n_years/n_days_year) * 7
+		runners[ID]['average_math_daily'] = (TOTAL/n_years/n_days_year)
+		runners[ID]['last_seven'] = __sum_moving_sequence_one__(runners[ID], 'last_seven', -7, -0)
+		runners[ID]['ante_last_seven'] = __sum_moving_sequence_one__(runners[ID], 'ante_last_seven', -14, -7)
 
 		latitude, longitude = 0, 0
 
-		dx = r['progress_total']
+		dx = runners[ID]['progress_total']
 		latitude, longitude = __get_coord__(latitude, longitude, -dx)
-		r['latitude'], r['longitude'] = latitude, longitude
+		runners[ID]['latitude'], runners[ID]['longitude'] = latitude, longitude
 
 	return runners
 
 def apply_cutoff(runners): # OK
-	for runner in runners:
+	for runner_id in runners:
 		#try:
 		#	cutoff_date = __str_to_date__(runner['start_date'])
 		#except Exception as e:
 		#	cutoff_date = runner['start_date']
-		cutoff_date = runner['start_date']
+		cutoff_date = runners[runner_id]['start_date']
 		#print(f'Cutoff_date {cutoff_date}\n')
-		dates, distances = runner['dates'], runner['distances']
+		dates, distances = runners[runner_id]['dates'], runners[runner_id]['distances']
 		dates, distances = __trim__(cutoff_date, dates, distances) # Cuts of data before start date.
-		runner['dates'], runner['distances'] = dates, distances
+		runners[runner_id]['dates'], runners[runner_id]['distances'] = dates, distances
 	return runners
 
 def __progress_since__(dates, distances, cutoff_date):
@@ -100,47 +100,44 @@ def __trim__(cutoff_date, dates, distances):
 	return newdates, newdistances
 
 def sum_moving_sequence(*a, **k):
-	return __sum_moving_sequence__(*a, **k)
+	return __sum_moving_sequence_all__(*a, **k)
 
-def __sum_moving_sequence__(runners, var_name, fromm, until=0):
-	try:
-		_ = runners[0] # If runners is more than one,
-		loop = len(runners) # do nothing.
-	except Exception as e:
-		runners = [runners]
-		loop = 1
+def __sum_moving_sequence_one__(runner, var_name, fromm, until=0):
+	start = fromm
+	if start < -runner['n_days_running']:
+		start = -runner['n_days_running']
 
-	for r in runners:
-		start = fromm
-		if start < -r['n_days_running']:
-			start = -r['n_days_running']
+	sequence = [daydate.add_days_as_str(daydate.today(), x)[0:10] for x in range(start, until)]
+	dates = runner['dates']
+	dates = [d[0:10] for d in dates]
+	distances = runner['distances']
 
-		sequence = [daydate.add_days_as_str(daydate.today(), x)[0:10] for x in range(start, until)]
-		dates = r['dates']
-		dates = [d[0:10] for d in dates]
-		distances = r['distances']
+	suma = 0
+	for i in range(len(dates)): # If data were ordered, I could loop only the last m.
+		if dates[i] in sequence:
+			suma += distances[i]
+	runner[var_name] = suma
+	return runner
 
-		suma = 0
-		for i in range(len(dates)): # If data were ordered, I could loop only the last m.
-			if dates[i] in sequence:
-				suma += distances[i]
-		r[var_name] = suma
+def __sum_moving_sequence_all__(runners, var_name, fromm, until=0):
+	for ID in runners:
+		runners[ID] = __sum_moving_sequence_one__(runners[ID], var_name, fromm, until)
 	return runners
 
 def fill_year_to_current(runners): # year_series_to_current
-	for r in runners:
-		#print("n_days_in_cycle", r['n_days_in_cycle'])
-		r['year_series'] = __fill__(r['dates'], r['distances'], daydate.first_day_of_current_year_cycle(r['start_date']), daydate.today())
-		#r['year_series'] = __fill__(r['dates'], r['distances'], -r['n_days_in_cycle'], 0)
-		#print("- ndays", -r['n_days_in_cycle'])
+	for ID in runners:
+		#print("n_days_in_cycle", runners[ID]['n_days_in_cycle'])
+		runners[ID]['year_series'] = __fill__(runners[ID]['dates'], runners[ID]['distances'], daydate.first_day_of_current_year_cycle(runners[ID]['start_date']), daydate.today())
+		#runners[ID]['year_series'] = __fill__(runners[ID]['dates'], runners[ID]['distances'], -runners[ID]['n_days_in_cycle'], 0)
+		#print("- ndays", -runners[ID]['n_days_in_cycle'])
 	return runners
 
 def fill_year_to_end(runners):
-	for r in runners:
-		start = daydate.first_day_of_current_year_cycle(r['start_date'])
-		end = daydate.last_day_of_current_year_cycle(r['start_date'])
+	for ID in runners:
+		start = daydate.first_day_of_current_year_cycle(runners[ID]['start_date'])
+		end = daydate.last_day_of_current_year_cycle(runners[ID]['start_date'])
 		end = daydate.add_days(end, 1)
-		r['year_series_complete'] = __fill__(r['dates'], r['distances'], start, end)
+		runners[ID]['year_series_complete'] = __fill__(runners[ID]['dates'], runners[ID]['distances'], start, end)
 	return runners
 
 def __fill__(dates, distances, start, end):

@@ -28,12 +28,11 @@ def process(runners):
 	#runners = moving_average(runners, 7) # Gives average across period; not for units within.
 	#runners = ante_last_seven(runners) # Gives average across period; not for units within.
 	runners = runnrs.fill_year_to_current(runners) # Creates sequence with 0 for blank days.
-	runners = runnrs.fill_year_to_end(runners)
+	##runners = runnrs.fill_year_to_end(runners)
 	runners = runnrs.sum_moving_sequence(runners, 'last_seven', -7, -0)
 	runners = runnrs.sum_moving_sequence(runners, 'ante_last_seven', -14, -7)
 	return runners
 runners = process(runners)
-
 
 # Display interactive.
 display.streamlit_hide(st.markdown)
@@ -43,42 +42,62 @@ display.streamlit_hide(st.markdown)
 #selected
 
 main = st.container() #Map = st.empty()
+graph = st.empty()
+slider = st.empty()
 
 with st.sidebar:
 	# Menu
 	lnk = "https://share.streamlit.io/mesmith027/streamlit_webapps/main/MC_pi/streamlit_app.py"
 	link = f'[Check this out]({lnk})'
 	#st.write(link)
-	names = [str(i).zfill(3)+' '+runners[i]['name'] for i in range(len(runners))]
+
+	IDs = [id_ for id_ in runners]
+	#print(IDs); exit()
+	#names = [str(i).zfill(3)+' '+runners[i]['name'] for i in range(len(IDs))]
+	unique_names = IDs
 	#links = 
-	linknames = ['Everyone'] + names + ['Settings']
-	runnerindex = list(range(len(names)))
+	linknames = ['Everyone'] + unique_names + ['Settings']
+	runnerindex = list(range(len(unique_names)))
 	
 	the_icons = ['globe'] + ['geo-fill' for x in range(len(runners))] + ['gear']
 
 	selected2 = option_menu(None, linknames, 
-	        icons=the_icons, menu_icon="cast", default_index=1)
+	        icons=the_icons, menu_icon="cast", default_index=2)
 	selected2
 
-	try:
-		choice = int(selected2[0:3])
-		choice_flag = 'id'
-	except Exception as e:
-		choice = selected2
-		choice_flag = 'name'
+	choice = selected2
+	choice_flag = ''
+	#try:
+	#	choice = int(selected2[0:3])
+	#	choice_flag = 'id'
+	#except Exception as e:
+	#	choice = selected2
+	#	choice_flag = 'name'
 
 with main:
 	st.title("Gaia Endurance") # La Terra # Endurance # Vigor, Vim # Dashing # Zooming
 
-	if choice_flag == 'id':
-		positions = display.get_position(runners[choice])
-		positions = [positions[0]]
-		zoom = 4
-	elif choice == 'Everyone':
+	if choice == 'Everyone':
 		positions = display.get_positions(runners)
 		zoom = 0.44
-	else:
+	elif choice == 'Settings':
 		st.write(f"Ain't no settings.")
+	else:
+		choice_flag = 'id'
+		unique_name = choice
+		positions = display.get_position(runners[unique_name])
+		positions = [positions[0]]
+		zoom = 4
+
+	# if choice_flag == 'id':
+	#	positions = display.get_position(runners[choice])
+	#	positions = [positions[0]]
+	#	zoom = 4
+	#elif choice_flag == 'name' and choice == 'Everyone':
+	#	positions = display.get_positions(runners)
+	#	zoom = 0.44
+	#else:
+	#	st.write(f"Ain't no settings.")
 
 	#latitude, longitude = 0, -71.2450076 # Pacoa, Colombia.
 	df = pd.DataFrame(positions, columns=['lat', 'lon'])
@@ -94,20 +113,24 @@ with main:
 		st.progress(percent)
 		percent = round(percent*100, 2)
 		st.text(f"Progress total ({percent}%)")
+	if choice == 'Everyone': #if choice_flag == 'name' and choice == 'Everyone':
+		st.markdown("***")
+		#st.markdown(" ### Runners ")
+		display.progress_bar_all(runners, st.progress, st.text)
 
-wide = st.empty()
+#graph = st.empty()
 
 if choice_flag == 'id':
 	col1, col2, col3 = st.columns((1, 1, 1))
 
-	with col3:
-		runner_name = runners[choice]['name']
-		end_date = runners[choice]['end_date']
+	with slider:
+		# Slider end date.
+		runner_name = unique_name # runners[choice]['name']
+		end_date = runners[unique_name]['end_date']
 		end_year = int(end_date[0:4])
-		#print(end_date); exit()
 		gui_end_date = st.slider("End date "+runner_name, 2027, 2042, end_year, 1)	
 		new_date = str(gui_end_date) + '-08-01'
-		runners[choice]['end_date'] = new_date
+		runners[unique_name]['end_date'] = new_date
 		runners = process(runners)
 
 	with col1:
@@ -143,31 +166,16 @@ if choice_flag == 'id':
 		st.metric(title, round(week_path_to_year, 2))
 		#st.success("<h2>HEI")
 
-
-
-	#st.title("Gaia Endurance") # La Terra # Endurance # Vigor, Vim # Dashing # Zooming
-	#gui_end_date = st.slider("End date Per", 2032, 2037, 2037, 1)
-	#new_date = str(gui_end_date) + '-08-01'
-	#runners[1]['end_date'] = new_date
-	#runners = process(runners)
-	#st.markdown("***")
-	#gui_end_date = st.slider("End date Mikal", 2032, 2037, 2032, 1)
-	#new_date = str(gui_end_date) + '-08-01'
-	#runners[0]['end_date'] = new_date
-	#runners = process(runners)
-	#selected = option_menu("Menu", ["You", 'Others', 'Settings'], 
-	#        icons=['geo-fill', 'globe2', 'gear'], menu_icon="cast", default_index=0)
-	#selected
-
-	#if selected == 'Others':
-	#	display.others(st)
-
-	#if selected == 'You':
-	#	pass
+	with col3:
+		title = "Size of current section"
+		#msg = str(progress_year) + f' (9999)'
+		msg = str(999) + ' km'
+		st.metric(title, msg)
 
 if choice_flag == 'id':
-	with wide:
-		rdata = display.make_graph_data(runners[choice])
+	with graph:
+		#print(runners[unique_name]); exit()
+		rdata = display.make_graph_data(runners[unique_name])
 		df = pd.DataFrame(
 		    rdata,
 		    columns=['name', 'day', 'distance_acc', 'distance_day', 'average_math_daily'])
@@ -180,5 +188,4 @@ if choice_flag == 'id':
 		    tooltip=['day', 'distance_day'])
 
 		st.markdown("***")
-		st.altair_chart(chart, use_container_width=True)	
-
+		st.altair_chart(chart, use_container_width=True)
